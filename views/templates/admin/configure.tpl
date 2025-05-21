@@ -1,3 +1,9 @@
+{if $admin_css}
+<style>
+{$admin_css nofilter}
+</style>
+{/if}
+
 {*
 * 2007-2023 PrestaShop
 *
@@ -108,111 +114,117 @@
             </div>
         {else}
             {* 1. část - Hlavní souhrn statistik *}
-            <div class="stats-summary-container">
-                <div class="stats-summary">
-                    <div class="stats-box stats-box-purple">
-                        <div class="stats-box-title">{l s='Celkem hodnocení' mod='mezistranka_hodnoceni'}</div>
-                        <div class="stats-box-value">{$total_ratings}</div>
-                    </div>
-                    
-                    <div class="stats-box stats-box-blue">
-                        <div class="stats-box-title">{l s='Průměrné hodnocení' mod='mezistranka_hodnoceni'}</div>
-                        <div class="stats-box-value">{$average_rating|string_format:"%.1f"}</div>
-                        <div class="stats-rating-stars">
-                            {for $i=1 to 5}
-                                {if $i <= $average_rating}
-                                    <i class="icon icon-star"></i>
-                                {elseif $i <= $average_rating+0.5}
-                                    <i class="icon icon-star-half-o"></i>
-                                {else}
-                                    <i class="icon icon-star-o"></i>
-                                {/if}
-                            {/for}
+            <div class="row stats-summary-container stats-summary-main">
+                <div class="col-md-12">
+                    <div class="stats-summary stats-summary-row">
+                        <div class="stats-box stats-box-custom stats-box-purple stats-total-ratings">
+                            <div class="stats-box-title">{l s='Celkem hodnocení' mod='mezistranka_hodnoceni'}</div>
+                            <div class="stats-box-value">{$total_ratings}</div>
                         </div>
-                    </div>
-                    
-                    <div class="stats-box stats-box-green">
-                        <div class="stats-box-title">{l s='Pozitivní hodnocení (4-5)' mod='mezistranka_hodnoceni'}</div>
-                        <div class="stats-box-value">{$positive_count}</div>
-                        <div class="stats-box-percent">{$positive_percent|string_format:"%.1f"}%</div>
-                    </div>
-                    
-                    <div class="stats-box stats-box-orange">
-                        <div class="stats-box-title">{l s='Negativní hodnocení (1-3)' mod='mezistranka_hodnoceni'}</div>
-                        <div class="stats-box-value">{$negative_count}</div>
-                        <div class="stats-box-percent">{$negative_percent|string_format:"%.1f"}%</div>
+                        
+                        <div class="stats-box stats-box-custom stats-box-blue stats-average-rating">
+                            <div class="stats-box-title">{l s='Průměrné hodnocení' mod='mezistranka_hodnoceni'}</div>
+                            <div class="stats-box-value">{$average_rating|string_format:"%.1f"}</div>
+                            <div class="stats-rating-stars stats-average-stars">
+                                {for $i=1 to 5}
+                                    {if $i <= $average_rating}
+                                        <i class="icon icon-star"></i>
+                                    {elseif $i <= $average_rating+0.5}
+                                        <i class="icon icon-star-half-o"></i>
+                                    {else}
+                                        <i class="icon icon-star-o"></i>
+                                    {/if}
+                                {/for}
+                            </div>
+                        </div>
+                        
+                        <div class="stats-box stats-box-custom stats-box-green stats-positive-ratings">
+                            <div class="stats-box-title">{l s='Pozitivní hodnocení (4-5)' mod='mezistranka_hodnoceni'}</div>
+                            <div class="stats-box-value">{$positive_count}</div>
+                            <div class="stats-box-percent stats-positive-percent">{$positive_percent|string_format:"%.1f"}%</div>
+                        </div>
+                        
+                        <div class="stats-box stats-box-custom stats-box-orange stats-negative-ratings">
+                            <div class="stats-box-title">{l s='Negativní hodnocení (1-3)' mod='mezistranka_hodnoceni'}</div>
+                            <div class="stats-box-value">{$negative_count}</div>
+                            <div class="stats-box-percent stats-negative-percent">{$negative_percent|string_format:"%.1f"}%</div>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            {* 2. část a 3. část - Rozložení hodnocení a Konverze na odkazy *}
-            <div class="stats-details-container">
+            {* 2. a 3. část - Rozložení hodnocení a Konverze na odkazy *}
+            <div class="row stats-details-container">
                 {* 2. část - Rozložení hodnocení *}
-                <div class="stats-panel">
-                    <div class="stats-panel-heading">
-                        <i class="icon icon-bar-chart"></i> {l s='Rozložení hodnocení' mod='mezistranka_hodnoceni'}
-                    </div>
-                    <div class="stats-panel-body">
-                        <div class="rating-distribution">
-                            {foreach from=$rating_distribution key=rating item=data}
-                                <div class="rating-row">
-                                    <div class="rating-stars-block">
-                                        {for $i=1 to 5}
-                                            {if $i <= $rating}<i class="icon icon-star"></i>{else}<i class="icon icon-star-o"></i>{/if}
-                                        {/for}
+                <div class="col-md-6 stats-distribution-column">
+                    <div class="stats-panel stats-rating-distribution-panel">
+                        <div class="stats-panel-heading">
+                            <i class="icon icon-bar-chart"></i> {l s='Rozložení hodnocení' mod='mezistranka_hodnoceni'}
+                        </div>
+                        <div class="stats-panel-body stats-distribution-body">
+                            <div class="rating-distribution stats-rating-distribution">
+                                {foreach from=$rating_distribution key=rating item=data}
+                                    <div class="rating-row stats-rating-row">
+                                        <div class="rating-stars-block stats-rating-stars-block">
+                                            {for $i=1 to 5}
+                                                {if $i <= $rating}<i class="icon icon-star"></i>{else}<i class="icon icon-star-o"></i>{/if}
+                                            {/for}
+                                        </div>
+                                        <div class="rating-progress-container stats-rating-progress-container">
+                                            <div class="rating-progress-bar stats-rating-progress-bar" style="width: {$data.percent}%"></div>
+                                        </div>
+                                        <div class="rating-percentage stats-rating-percentage">{$data.percent|string_format:"%.1f"}%</div>
+                                        <div class="rating-count stats-rating-count">({$data.count})</div>
                                     </div>
-                                    <div class="rating-progress-container">
-                                        <div class="rating-progress-bar" style="width: {$data.percent}%"></div>
-                                    </div>
-                                    <div class="rating-percentage">{$data.percent|string_format:"%.1f"}%</div>
-                                    <div class="rating-count">({$data.count})</div>
-                                </div>
-                            {/foreach}
+                                {/foreach}
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 {* 3. část - Konverze na odkazy *}
                 {if !empty($link_clicks)}
-                <div class="stats-panel">
-                    <div class="stats-panel-heading">
-                        <i class="icon icon-link"></i> {l s='Konverze na odkazy' mod='mezistranka_hodnoceni'}
-                    </div>
-                    <div class="stats-panel-body">
-                        <table class="stats-table">
-                            <thead>
-                                <tr>
-                                    <th>{l s='Odkaz' mod='mezistranka_hodnoceni'}</th>
-                                    <th class="text-center">{l s='Počet kliknutí' mod='mezistranka_hodnoceni'}</th>
-                                    <th class="text-center">{l s='Konverzní poměr' mod='mezistranka_hodnoceni'}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {foreach from=$link_clicks key=link item=data}
+                <div class="col-md-6 stats-links-column">
+                    <div class="stats-panel stats-links-conversion-panel">
+                        <div class="stats-panel-heading">
+                            <i class="icon icon-link"></i> {l s='Konverze na odkazy' mod='mezistranka_hodnoceni'}
+                        </div>
+                        <div class="stats-panel-body stats-links-body">
+                            <table class="stats-table stats-links-table">
+                                <thead>
                                     <tr>
-                                        <td>{$link}</td>
-                                        <td class="text-center">{$data.count}</td>
-                                        <td class="text-center">{$data.percent|string_format:"%.1f"}%</td>
+                                        <th>{l s='Odkaz' mod='mezistranka_hodnoceni'}</th>
+                                        <th class="text-center">{l s='Počet kliknutí' mod='mezistranka_hodnoceni'}</th>
+                                        <th class="text-center">{l s='Konverzní poměr' mod='mezistranka_hodnoceni'}</th>
                                     </tr>
-                                {/foreach}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {foreach from=$link_clicks key=link item=data}
+                                        <tr>
+                                            <td>{$link}</td>
+                                            <td class="text-center">{$data.count}</td>
+                                            <td class="text-center">{$data.percent|string_format:"%.1f"}%</td>
+                                        </tr>
+                                    {/foreach}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 {/if}
             </div>
             
             {* 4. část - Detail hodnocení *}
-            <div class="stats-detail-container">
+            <div class="stats-detail-container stats-full-detail">
                 <div class="stats-detail-title">
                     <i class="icon icon-list"></i> {l s='Detail hodnocení' mod='mezistranka_hodnoceni'}
                 </div>
                 
-                <div class="filter-container">
+                <div class="filter-container stats-filter-container">
                     <div class="row">
                         <div class="col-md-4">
                             <label class="filter-label">{l s='Filtrovat podle hodnocení:' mod='mezistranka_hodnoceni'}</label>
-                            <select class="form-control rating-filter">
+                            <select class="form-control rating-filter stats-rating-filter">
                                 <option value="all">{l s='Všechna hodnocení' mod='mezistranka_hodnoceni'}</option>
                                 <option value="5">★★★★★ (5/5)</option>
                                 <option value="4">★★★★☆ (4/5)</option>
@@ -224,8 +236,8 @@
                     </div>
                 </div>
                 
-                <div class="table-responsive">
-                    <table class="table table-striped stats-table">
+                <div class="table-responsive stats-table-responsive">
+                    <table class="table table-striped stats-table stats-full-detail-table">
                         <thead>
                             <tr>
                                 <th>{l s='ID' mod='mezistranka_hodnoceni'}</th>
@@ -240,7 +252,7 @@
                             {foreach from=$statistics item=stat}
                                 <tr class="stat-row" data-rating="{$stat.rating}">
                                     <td>{$stat.id_stat}</td>
-                                    <td class="rating-stars-table">
+                                    <td class="rating-stars-table stats-rating-stars-table">
                                         {for $i=1 to 5}
                                             {if $i <= $stat.rating}<i class="icon icon-star"></i>{else}<i class="icon icon-star-o"></i>{/if}
                                         {/for}

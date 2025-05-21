@@ -44,7 +44,8 @@ class Mezistranka_Hodnoceni extends Module
                $this->registerHook('displayHeader') &&
                $this->registerHook('actionFrontControllerSetMedia') &&
                $this->registerHook('moduleRoutes') &&
-               $this->registerHook('displayBackOfficeHeader');
+               $this->registerHook('displayBackOfficeHeader') &&
+               $this->registerHook('actionAdminControllerSetMedia');
     }
 
     public function hookDisplayHeader()
@@ -97,12 +98,23 @@ class Mezistranka_Hodnoceni extends Module
      * Hook pro admin CSS a JS
      */
     public function hookDisplayBackOfficeHeader()
-    {
-        if (Tools::getValue('configure') === $this->name) {
-            $this->context->controller->addJS($this->_path . 'views/js/admin.js');
-            $this->context->controller->addCSS($this->_path . 'views/css/admin.css');
-        }
+{
+    if (Tools::getValue('configure') === $this->name) {
+        $adminCssUri = __PS_BASE_URI__ . 'modules/' . $this->name . '/views/css/admin.css?v=' . time();
+        $this->context->controller->addCSS($adminCssUri);
+        $this->context->controller->addJS($this->_path . 'views/js/admin.js');
+        
+        // Pro kontrolu přidejte log
+        PrestaShopLogger::addLog('Admin CSS URI: ' . $adminCssUri, 1);
     }
+}
+
+public function hookActionAdminControllerSetMedia()
+{
+    if (Tools::getValue('configure') === $this->name) {
+        $this->context->controller->addCSS($this->_path . 'views/css/admin.css');
+    }
+}
 
     /**
      * Zobrazení obsahu administrace modulu
@@ -111,6 +123,25 @@ class Mezistranka_Hodnoceni extends Module
     {
         $output = '';
         
+        // Načtení CSS přímo do proměnné
+    $adminCss = '';
+    $cssFile = dirname(__FILE__) . '/views/css/admin.css';
+    if (file_exists($cssFile)) {
+        $adminCss = file_get_contents($cssFile);
+    }
+    
+    // Přiřazení CSS do šablony
+    $this->context->smarty->assign([
+        'module_dir' => $this->_path,
+        'current_tab' => Tools::isSubmit('statistics_tab') ? 'statistics' : 'configuration',
+        'statistics' => $this->getStatistics(),
+        'ps_version' => _PS_VERSION_,
+        'export_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name . '&export_stats=1',
+        'config_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name,
+        'statistics_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name . '&statistics_tab=1',
+        'admin_css' => $adminCss, // Přidáme CSS jako proměnnou
+    ]);
+    
         // Zpracování exportu statistik
         if (Tools::isSubmit('export_stats')) {
             $this->exportStatisticsCSV();

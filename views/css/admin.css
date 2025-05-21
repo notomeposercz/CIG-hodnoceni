@@ -1,157 +1,131 @@
 /**
- * Admin styly pro modul Mezistranka hodnoceni
+ * Admin styly pro modul Mezistranka hodnoceni (Finální verze)
  */
 
-/* Základní styly pro statististické boxy */
-.statistics-summary {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 20px 0;
-    gap: 20px;
+/* 1. část - Hlavní souhrn statistik */
+.stats-summary-container {
+    margin-bottom: 30px;
+    width: 100%;
 }
 
-.statistics-summary .stat-box {
+.stats-summary {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin: 0 -10px;
+}
+
+.stats-box {
     flex: 1;
     min-width: 200px;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin: 10px;
+    padding: 25px 20px;
     text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
     background-color: #fff;
     transition: all 0.3s ease;
 }
 
-.statistics-summary .stat-box:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+.stats-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
 }
 
-.statistics-summary .stat-box h5 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #555;
+.stats-box-title {
     font-size: 16px;
     font-weight: 500;
+    color: #555;
+    margin-bottom: 15px;
 }
 
-.statistics-summary .stat-box .stat-value {
-    font-size: 28px;
-    font-weight: bold;
+.stats-box-value {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.stats-box-percent {
+    font-size: 16px;
+    color: #666;
+}
+
+/* Barevné varianty boxů */
+.stats-box-blue {
+    border-top: 4px solid #25b9d7;
+}
+.stats-box-blue .stats-box-value {
     color: #25b9d7;
-    margin-bottom: 5px;
 }
 
-/* Stylování hvězdiček */
-.rating-stars {
-    color: #ffc107;
-    font-size: 18px;
-    margin: 10px 0;
+.stats-box-green {
+    border-top: 4px solid #72c279;
+}
+.stats-box-green .stats-box-value {
+    color: #72c279;
+}
+
+.stats-box-orange {
+    border-top: 4px solid #fbbb22;
+}
+.stats-box-orange .stats-box-value {
+    color: #fbbb22;
+}
+
+.stats-box-purple {
+    border-top: 4px solid #9e77e0;
+}
+.stats-box-purple .stats-box-value {
+    color: #9e77e0;
+}
+
+/* Hvězdičky v souhrnu */
+.stats-rating-stars {
+    font-size: 24px;
+    color: #FFC107;
     letter-spacing: 2px;
+    margin: 10px 0;
 }
 
-.rating-stars .icon-star-o {
+.stats-rating-stars i.icon-star-o {
     color: #e0e0e0;
 }
 
-/* Barevné rozlišení statistik */
-.positive-box {
-    border-left: 4px solid #4caf50;
+/* 2. část a 3. část - Rozložení hodnocení a Konverze */
+.stats-details-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px 30px -10px;
 }
 
-.negative-box {
-    border-left: 4px solid #ff9800;
-}
-
-.average-box {
-    border-left: 4px solid #25b9d7;
-}
-
-.total-box {
-    border-left: 4px solid #6c757d;
-}
-
-/* Procenta */
-.stat-percent {
-    font-size: 15px;
-    color: #6c757d;
-    margin-top: 5px;
-}
-
-/* Responzivní tabulka pro menší obrazovky */
-@media (max-width: 768px) {
-    .statistics-summary {
-        display: block;
-    }
-    
-    .statistics-summary .stat-box {
-        margin-bottom: 15px;
-        width: 100%;
-    }
-}
-
-/* Detailní přehled hodnocení */
-.stats-details {
-    margin-top: 20px;
-}
-
-/* Styling pro tabulku */
-.table-statistics {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    margin-bottom: 0;
-}
-
-.table-statistics th {
-    background-color: #f8f9fa;
-    border-top: none;
-    border-bottom: 2px solid #e9ecef;
-    color: #495057;
-    font-weight: 600;
-    padding: 12px 8px;
-}
-
-.table-statistics td {
-    vertical-align: middle !important;
-    padding: 12px 8px;
-    border-top: 1px solid #e9ecef;
-}
-
-.table-statistics tr:hover {
-    background-color: #f8f9fa;
-}
-
-/* Grafy a dashboard */
-.dashboard-stats {
-    background-color: #fff;
+.stats-panel {
+    flex: 1;
+    min-width: 400px;
+    margin: 10px;
+    background: #fff;
     border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 30px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    overflow: hidden;
 }
 
-.dashboard-title {
-    font-size: 18px;
+.stats-panel-heading {
+    padding: 15px 20px;
+    background: #F5F7F9;
+    border-bottom: 1px solid #eaeaea;
+    font-size: 16px;
     font-weight: 600;
     color: #333;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #f8f9fa;
-    padding-bottom: 10px;
 }
 
-/* Override pro panel hlavičku */
-.panel-heading {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-    padding: 15px 20px;
+.stats-panel-body {
+    padding: 20px;
 }
 
-/* Rating distribution section */
+/* 2. část - Rozložení hodnocení */
 .rating-distribution {
-    margin-top: 30px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .rating-row {
@@ -159,45 +133,124 @@
     align-items: center;
 }
 
-.rating-stars-small {
-    width: 120px;
-    font-size: 14px;
-    color: #ffc107;
+.rating-stars-block {
+    min-width: 120px;
+    font-size: 16px;
+    color: #FFC107;
+    display: flex;
+    align-items: center;
 }
 
-.rating-bar-container {
+.rating-progress-container {
     flex-grow: 1;
     height: 12px;
-    background-color: #f0f0f0;
+    background-color: #f5f5f5;
     border-radius: 6px;
     margin: 0 15px;
     overflow: hidden;
 }
 
-.rating-bar {
+.rating-progress-bar {
     height: 100%;
     background-color: #25b9d7;
     border-radius: 6px;
 }
 
-.rating-percent {
-    width: 60px;
+.rating-percentage {
+    min-width: 55px;
     text-align: right;
+    font-size: 15px;
     font-weight: 500;
-    color: #495057;
+    color: #333;
 }
 
 .rating-count {
-    width: 60px;
+    min-width: 60px;
     text-align: right;
-    color: #6c757d;
+    font-size: 14px;
+    color: #666;
+    padding-left: 8px;
 }
 
-/* Filtrace */
+/* 3. část - Konverze na odkazy */
+.stats-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.stats-table th {
+    background-color: #f5f7f9;
+    font-weight: 600;
+    color: #333;
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 2px solid #eee;
+}
+
+.stats-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.stats-table tr:hover td {
+    background-color: #f9f9f9;
+}
+
+.stats-table th.text-center, 
+.stats-table td.text-center {
+    text-align: center;
+}
+
+/* 4. část - Detail hodnocení */
+.stats-detail-container {
+    margin-top: 30px;
+}
+
+.stats-detail-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
 .filter-container {
-    margin: 20px 0;
+    margin-bottom: 20px;
     padding: 15px;
     background-color: #f8f9fa;
     border-radius: 8px;
     border: 1px solid #e9ecef;
+}
+
+.filter-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+/* Responsivní úpravy */
+@media (max-width: 992px) {
+    .stats-box {
+        flex-basis: calc(50% - 20px);
+    }
+    
+    .stats-panel {
+        flex-basis: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-box {
+        flex-basis: 100%;
+    }
+}
+
+/* Hvězdičky v tabulkách */
+.rating-stars-table {
+    color: #FFC107;
+    font-size: 14px;
+    letter-spacing: 1px;
 }

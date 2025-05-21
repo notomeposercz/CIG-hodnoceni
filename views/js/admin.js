@@ -12,18 +12,16 @@ $(document).ready(function() {
     });
     
     // Filtrování podle hodnocení
-    $('.rating-filter').on('change', function() {
-        console.log('Filtruji podle hodnocení:', $(this).val());
-        var rating = $(this).val();
-        
-        if (rating === 'all') {
-            // Zobrazit všechny řádky
-            $('.stat-row').show();
-        } else {
-            // Skrýt všechny řádky
-            $('.stat-row').hide();
-            // Zobrazit pouze řádky s požadovaným hodnocením
-            $('.stat-row[data-rating="' + rating + '"]').show();
-        }
-    });
+    $(document).ready(function() {
+  $('.rating-filter').change(function() {
+    var rating = $(this).val();
+    console.log("Filtruji: " + rating);
+    
+    if (rating === 'all') {
+      $('.stat-row').show();
+    } else {
+      $('.stat-row').hide();
+      $('.stat-row[data-rating="' + rating + '"]').show();
+    }
+  });
 });
