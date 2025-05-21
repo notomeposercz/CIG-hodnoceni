@@ -45,7 +45,55 @@ class Mezistranka_Hodnoceni extends Module
                $this->registerHook('actionFrontControllerSetMedia') &&
                $this->registerHook('moduleRoutes') &&
                $this->registerHook('displayBackOfficeHeader') &&
-               $this->registerHook('actionAdminControllerSetMedia');
+               $this->registerHook('actionAdminControllerSetMedia') &&
+               $this->registerHook('actionCmsObjectSave') && 
+               $this->registerHook('actionObjectCmsUpdateAfter') &&
+               $this->registerHook('displayFooter');
+    }
+
+    /**
+     * Hook volaný po každém uložení CMS stránky v administraci
+     */
+    public function hookActionCmsObjectSave($params)
+    {
+        return $this->processShortcodeInCms($params);
+    }
+    
+    /**
+     * Hook volaný po každé aktualizaci CMS stránky
+     */
+    public function hookActionObjectCmsUpdateAfter($params)
+    {
+        return $this->processShortcodeInCms($params);
+    }
+    
+    /**
+     * Zpracuje shortcode v CMS stránce a uloží upravenou verzi do databáze
+     */
+    private function processShortcodeInCms($params)
+    {
+        // Načtení formuláře hodnocení
+        $this->context->smarty->assign([
+            'page_title' => $this->l('Ohodnoťte nás'),
+        ]);
+        
+        // Získání HTML obsahu formuláře hodnocení
+        $ratingHtml = $this->fetch('module:' . $this->name . '/views/templates/front/rating_content.tpl');
+        $ratingHtml = addslashes($ratingHtml); // Escapování pro SQL
+        
+        // Aktualizace všech CMS stránek, které obsahují shortcode
+        $sql = "UPDATE `" . _DB_PREFIX_ . "cms_lang` 
+                SET `content` = REPLACE(`content`, '{mezistrankahodnoceni}', '" . $ratingHtml . "')
+                WHERE `content` LIKE '%{mezistrankahodnoceni}%'";
+        
+        Db::getInstance()->execute($sql);
+        
+        // Vyčištění cache
+        if (method_exists('Tools', 'clearAllCache')) {
+            Tools::clearAllCache();
+        }
+        
+        return true;
     }
 
     public function hookDisplayHeader()
@@ -98,23 +146,96 @@ class Mezistranka_Hodnoceni extends Module
      * Hook pro admin CSS a JS
      */
     public function hookDisplayBackOfficeHeader()
-{
-    if (Tools::getValue('configure') === $this->name) {
-        $adminCssUri = __PS_BASE_URI__ . 'modules/' . $this->name . '/views/css/admin.css?v=' . time();
-        $this->context->controller->addCSS($adminCssUri);
-        $this->context->controller->addJS($this->_path . 'views/js/admin.js');
-        
-        // Pro kontrolu přidejte log
-        PrestaShopLogger::addLog('Admin CSS URI: ' . $adminCssUri, 1);
+    {
+        if (Tools::getValue('configure') === $this->name) {
+            $adminCssUri = __PS_BASE_URI__ . 'modules/' . $this->name . '/views/css/admin.css?v=' . time();
+            $this->context->controller->addCSS($adminCssUri);
+            $this->context->controller->addJS($this->_path . 'views/js/admin.js');
+        }
     }
-}
 
-public function hookActionAdminControllerSetMedia()
-{
-    if (Tools::getValue('configure') === $this->name) {
-        $this->context->controller->addCSS($this->_path . 'views/css/admin.css');
+    public function hookActionAdminControllerSetMedia()
+    {
+        if (Tools::getValue('configure') === $this->name) {
+            $this->context->controller->addCSS($this->_path . 'views/css/admin.css');
+        }
     }
-}
+    
+    /**
+     * Hook pro footer - záložní řešení pro případ, že by hooky pro CMS nefungovaly
+     */
+    public function hookDisplayFooter()
+    {
+        if ($this->context->controller instanceof CmsController) {
+            $cms_id = (int)Tools::getValue('id_cms');
+            
+            if ($cms_id > 0) {
+                return '<script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        // Vytvořte nový styl pro naši komponentu v patičce
+                        var ratingStyle = document.createElement("style");
+                        ratingStyle.textContent = `
+                            .mezistrankahodnoceni-placeholder { 
+                                color: #999; 
+                                padding: 10px; 
+                                border: 1px dashed #ccc; 
+                                margin: 15px 0; 
+                                text-align: center; 
+                                cursor: pointer;
+                                background: #f9f9f9;
+                                border-radius: 5px;
+                            }
+                        `;
+                        document.head.appendChild(ratingStyle);
+                        
+                        // Najděte všechny výskyty textu {mezistrankahodnoceni} v obsahu
+                        var pattern = /{mezistrankahodnoceni}/g;
+                        var elements = document.querySelectorAll(".cms-content, .page-content, #cms");
+                        
+                        elements.forEach(function(element) {
+                            if (element && element.innerHTML && element.innerHTML.includes("{mezistrankahodnoceni}")) {
+                                // Vytvořte placeholder, který lze kliknout pro aktualizaci
+                                var placeholder = document.createElement("div");
+                                placeholder.className = "mezistrankahodnoceni-placeholder";
+                                placeholder.innerHTML = "<strong>Komponenta pro hodnocení</strong><br>Klikněte pro aktualizaci";
+                                placeholder.title = "Klikněte pro načtení komponenty hodnocení";
+                                
+                                // Nahraďte text placeholderem
+                                element.innerHTML = element.innerHTML.replace(pattern, placeholder.outerHTML);
+                                
+                                // Po kliknutí načíst komponentu přes AJAX
+                                element.querySelectorAll(".mezistrankahodnoceni-placeholder").forEach(function(ph) {
+                                    ph.addEventListener("click", function() {
+                                        var xhr = new XMLHttpRequest();
+                                        xhr.open("GET", "' . $this->context->link->getModuleLink($this->name, 'rating') . '", true);
+                                        xhr.onreadystatechange = function() {
+                                            if (xhr.readyState === 4 && xhr.status === 200) {
+                                                var parser = new DOMParser();
+                                                var doc = parser.parseFromString(xhr.responseText, "text/html");
+                                                var rating = doc.querySelector(".rating-container");
+                                                
+                                                if (rating) {
+                                                    ph.outerHTML = rating.outerHTML;
+                                                    
+                                                    // Načtení skriptů pro inicializaci
+                                                    var script = document.createElement("script");
+                                                    script.src = "' . $this->context->link->getMediaLink('/modules/' . $this->name . '/views/js/mezistranka_hodnoceni.js') . '";
+                                                    document.body.appendChild(script);
+                                                }
+                                            }
+                                        };
+                                        xhr.send();
+                                    });
+                                });
+                            }
+                        });
+                    });
+                </script>';
+            }
+        }
+        
+        return '';
+    }
 
     /**
      * Zobrazení obsahu administrace modulu
@@ -123,25 +244,57 @@ public function hookActionAdminControllerSetMedia()
     {
         $output = '';
         
+        // Pokud bylo posláno tlačítko pro aktualizaci všech stránek s shortcodem
+        if (Tools::isSubmit('update_shortcodes')) {
+            // Načtení formuláře hodnocení
+            $this->context->smarty->assign([
+                'page_title' => $this->l('Ohodnoťte nás'),
+            ]);
+            
+            // Získání HTML obsahu formuláře hodnocení
+            $ratingHtml = $this->fetch('module:' . $this->name . '/views/templates/front/rating_content.tpl');
+            $ratingHtml = addslashes($ratingHtml); // Escapování pro SQL
+            
+            // Aktualizace všech CMS stránek, které obsahují shortcode
+            $sql = "UPDATE `" . _DB_PREFIX_ . "cms_lang` 
+                    SET `content` = REPLACE(`content`, '{mezistrankahodnoceni}', '" . $ratingHtml . "')
+                    WHERE `content` LIKE '%{mezistrankahodnoceni}%'";
+            
+            if (Db::getInstance()->execute($sql)) {
+                // Vyčištění cache
+                if (method_exists('Tools', 'clearAllCache')) {
+                    Tools::clearAllCache();
+                }
+                
+                $output .= $this->displayConfirmation($this->l('Všechny stránky se shortcodem byly aktualizovány.'));
+            } else {
+                $output .= $this->displayError($this->l('Nastala chyba při aktualizaci stránek.'));
+            }
+        }
+        
+        // Aktualizace tlačítko pro manuální spuštění
+        $update_shortcode_btn = $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name . '&update_shortcodes=1';
+        $this->context->smarty->assign('update_shortcode_btn', $update_shortcode_btn);
+        
         // Načtení CSS přímo do proměnné
-    $adminCss = '';
-    $cssFile = dirname(__FILE__) . '/views/css/admin.css';
-    if (file_exists($cssFile)) {
-        $adminCss = file_get_contents($cssFile);
-    }
-    
-    // Přiřazení CSS do šablony
-    $this->context->smarty->assign([
-        'module_dir' => $this->_path,
-        'current_tab' => Tools::isSubmit('statistics_tab') ? 'statistics' : 'configuration',
-        'statistics' => $this->getStatistics(),
-        'ps_version' => _PS_VERSION_,
-        'export_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name . '&export_stats=1',
-        'config_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name,
-        'statistics_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name . '&statistics_tab=1',
-        'admin_css' => $adminCss, // Přidáme CSS jako proměnnou
-    ]);
-    
+        $adminCss = '';
+        $cssFile = dirname(__FILE__) . '/views/css/admin.css';
+        if (file_exists($cssFile)) {
+            $adminCss = file_get_contents($cssFile);
+        }
+        
+        // Přiřazení CSS do šablony
+        $this->context->smarty->assign([
+            'module_dir' => $this->_path,
+            'current_tab' => Tools::isSubmit('statistics_tab') ? 'statistics' : 'configuration',
+            'statistics' => $this->getStatistics(),
+            'ps_version' => _PS_VERSION_,
+            'export_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name . '&export_stats=1',
+            'config_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name,
+            'statistics_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name . '&statistics_tab=1',
+            'admin_css' => $adminCss, // Přidáme CSS jako proměnnou
+        ]);
+        
         // Zpracování exportu statistik
         if (Tools::isSubmit('export_stats')) {
             $this->exportStatisticsCSV();

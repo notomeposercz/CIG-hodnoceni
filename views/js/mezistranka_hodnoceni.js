@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function() {
       // Kontrola existence prvků
       const starContainer = document.getElementById("starContainer");
       if (!starContainer) {
-        console.error("Element s ID 'starContainer' nebyl nalezen!");
+        console.log("Element s ID 'starContainer' nebyl nalezen - přeskakuji inicializaci.");
         return;
       }
   

@@ -34,6 +34,18 @@
         <i class="icon icon-star"></i> {l s='Mezistranka hodnoceni' mod='mezistranka_hodnoceni'}
     </div>
     
+<div class="alert alert-info">
+    <p><strong>{l s='Instrukce pro vložení hodnocení do CMS stránky:' mod='mezistranka_hodnoceni'}</strong></p>
+    <p>{l s='1. Vložte kód {mezistrankahodnoceni} do obsahu stránky v editoru CMS.' mod='mezistranka_hodnoceni'}</p>
+    <p>{l s='2. Uložte stránku a komponenta pro hodnocení by se měla automaticky zobrazit.' mod='mezistranka_hodnoceni'}</p>
+    <p>{l s='Pokud komponenta hodnocení není viditelná, klikněte na tlačítko níže pro manuální aktualizaci všech stránek:' mod='mezistranka_hodnoceni'}</p>
+    <p class="text-center">
+        <a href="{$update_shortcode_btn|escape:'html':'UTF-8'}" class="btn btn-primary">
+            <i class="icon icon-refresh"></i> {l s='Aktualizovat všechny stránky se shortcodem' mod='mezistranka_hodnoceni'}
+        </a>
+    </p>
+</div>
+
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item {if $current_tab == 'configuration'}active{/if}">
             <a class="nav-link" href="{$config_url|escape:'html':'UTF-8'}" role="tab">

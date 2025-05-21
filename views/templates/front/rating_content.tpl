@@ -1,11 +1,4 @@
-{extends file='page.tpl'}
-
-{block name='page_title'}
-  {l s='Ohodnoťte nás' d='Modules.Mezistranka_hodnoceni.Rating'}
-{/block}
-
-{block name='page_content'}
-  <div class="rating-container">
+<div class="rating-container">
   <h2>{l s='Jak jste spokojeni s našimi službami?' d='Modules.Mezistranka_hodnoceni.Rating'}</h2>
   <div id="starContainer" class="stars">
     <span data-star="1">★</span>
@@ -30,4 +23,3 @@
     <a href="mailto:info@czechimage.cz">{l s='E-mail: info@czechimage.cz' d='Modules.Mezistranka_hodnoceni.Rating'}</a>
   </div>
 </div>
-{/block}
