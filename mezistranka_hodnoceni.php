@@ -9,7 +9,7 @@ class Mezistranka_Hodnoceni extends Module
     {
         $this->name = 'mezistranka_hodnoceni';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
         $this->author = 'ChatGPT';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -40,6 +40,9 @@ class Mezistranka_Hodnoceni extends Module
             return false;
         }
 
+        // V případě, že se instaluje poprvé, aktualizujeme všechny existující CMS stránky
+        $this->updateAllCmsWithShortcode();
+
         return parent::install() && 
                $this->registerHook('displayHeader') &&
                $this->registerHook('actionFrontControllerSetMedia') &&
@@ -48,7 +51,9 @@ class Mezistranka_Hodnoceni extends Module
                $this->registerHook('actionAdminControllerSetMedia') &&
                $this->registerHook('actionCmsObjectSave') && 
                $this->registerHook('actionObjectCmsUpdateAfter') &&
-               $this->registerHook('displayFooter');
+               $this->registerHook('displayFooter') &&
+               // Nový hook pro filtrování obsahu CMS stránek
+               $this->registerHook('filterCmsContent');
     }
 
     /**
@@ -72,13 +77,8 @@ class Mezistranka_Hodnoceni extends Module
      */
     private function processShortcodeInCms($params)
     {
-        // Načtení formuláře hodnocení
-        $this->context->smarty->assign([
-            'page_title' => $this->l('Ohodnoťte nás'),
-        ]);
-        
         // Získání HTML obsahu formuláře hodnocení
-        $ratingHtml = $this->fetch('module:' . $this->name . '/views/templates/front/rating_content.tpl');
+        $ratingHtml = $this->getRatingContent();
         $ratingHtml = addslashes($ratingHtml); // Escapování pro SQL
         
         // Aktualizace všech CMS stránek, které obsahují shortcode
@@ -96,9 +96,67 @@ class Mezistranka_Hodnoceni extends Module
         return true;
     }
 
+    /**
+     * Aktualizace všech CMS stránek se shortcodem
+     */
+    public function updateAllCmsWithShortcode()
+    {
+        // Získání HTML obsahu formuláře hodnocení
+        $ratingHtml = $this->getRatingContent();
+        $ratingHtml = addslashes($ratingHtml); // Escapování pro SQL
+        
+        // Aktualizace všech CMS stránek, které obsahují shortcode
+        $sql = "UPDATE `" . _DB_PREFIX_ . "cms_lang` 
+                SET `content` = REPLACE(`content`, '{mezistrankahodnoceni}', '" . $ratingHtml . "')
+                WHERE `content` LIKE '%{mezistrankahodnoceni}%'";
+        
+        $result = Db::getInstance()->execute($sql);
+        
+        // Vyčištění cache
+        if (method_exists('Tools', 'clearAllCache')) {
+            Tools::clearAllCache();
+        }
+        
+        return $result;
+    }
+
+    /**
+     * Získá obsah hodnocení
+     */
+    private function getRatingContent()
+    {
+        // Načtení formuláře hodnocení
+        $this->context->smarty->assign([
+            'page_title' => $this->l('Ohodnoťte nás'),
+            'module_dir' => $this->_path,
+        ]);
+        
+        // Získání HTML obsahu formuláře hodnocení
+        return $this->fetch('module:' . $this->name . '/views/templates/front/rating_content.tpl');
+    }
+
+    /**
+     * Nový hook pro filtrování obsahu CMS stránek - doplňuje dynamické nahrazení
+     */
+    public function hookFilterCmsContent($params)
+    {
+        if (isset($params['object']) && $params['object'] instanceof CMSCore) {
+            $content = $params['object']->content;
+            
+            // Pokud obsahuje shortcode, nahradíme ho
+            if (strpos($content, '{mezistrankahodnoceni}') !== false) {
+                $ratingHtml = $this->getRatingContent();
+                $content = str_replace('{mezistrankahodnoceni}', $ratingHtml, $content);
+                $params['object']->content = $content;
+            }
+        }
+        
+        return $params;
+    }
+
     public function hookDisplayHeader()
     {
-        // Modernější zápis pro PrestaShop 8.x
+        // Vždy načíst CSS a JS pro hodnocení (podmínku lze přidat později)
         $this->context->controller->registerStylesheet(
             'module-mezistranka-css',
             'modules/'.$this->name.'/views/css/mezistranka_hodnoceni.css',
@@ -129,7 +187,7 @@ class Mezistranka_Hodnoceni extends Module
 
     public function hookActionFrontControllerSetMedia()
     {
-        // Pro moderní témata v PS 8.x
+        // Vždy načíst CSS a JS pro hodnocení (podmínku lze přidat později)
         $this->context->controller->registerStylesheet(
             'module-mezistranka-css',
             'modules/'.$this->name.'/views/css/mezistranka_hodnoceni.css',
@@ -148,7 +206,7 @@ class Mezistranka_Hodnoceni extends Module
     public function hookDisplayBackOfficeHeader()
     {
         if (Tools::getValue('configure') === $this->name) {
-            $adminCssUri = __PS_BASE_URI__ . 'modules/' . $this->name . '/views/css/admin.css?v=' . time();
+            $adminCssUri = __PS_BASE_URI__ . 'modules/' . $this->name . '/views/css/admin.css';
             $this->context->controller->addCSS($adminCssUri);
             $this->context->controller->addJS($this->_path . 'views/js/admin.js');
         }
@@ -163,74 +221,48 @@ class Mezistranka_Hodnoceni extends Module
     
     /**
      * Hook pro footer - záložní řešení pro případ, že by hooky pro CMS nefungovaly
+     * Vylepšená verze s dynamickým nahrazením
      */
     public function hookDisplayFooter()
     {
+        // Nejprve ověříme, zda jsme na CMS stránce
         if ($this->context->controller instanceof CmsController) {
             $cms_id = (int)Tools::getValue('id_cms');
             
             if ($cms_id > 0) {
-                return '<script>
-                    document.addEventListener("DOMContentLoaded", function() {
-                        // Vytvořte nový styl pro naši komponentu v patičce
-                        var ratingStyle = document.createElement("style");
-                        ratingStyle.textContent = `
-                            .mezistrankahodnoceni-placeholder { 
-                                color: #999; 
-                                padding: 10px; 
-                                border: 1px dashed #ccc; 
-                                margin: 15px 0; 
-                                text-align: center; 
-                                cursor: pointer;
-                                background: #f9f9f9;
-                                border-radius: 5px;
-                            }
-                        `;
-                        document.head.appendChild(ratingStyle);
-                        
-                        // Najděte všechny výskyty textu {mezistrankahodnoceni} v obsahu
-                        var pattern = /{mezistrankahodnoceni}/g;
-                        var elements = document.querySelectorAll(".cms-content, .page-content, #cms");
-                        
-                        elements.forEach(function(element) {
-                            if (element && element.innerHTML && element.innerHTML.includes("{mezistrankahodnoceni}")) {
-                                // Vytvořte placeholder, který lze kliknout pro aktualizaci
-                                var placeholder = document.createElement("div");
-                                placeholder.className = "mezistrankahodnoceni-placeholder";
-                                placeholder.innerHTML = "<strong>Komponenta pro hodnocení</strong><br>Klikněte pro aktualizaci";
-                                placeholder.title = "Klikněte pro načtení komponenty hodnocení";
-                                
-                                // Nahraďte text placeholderem
-                                element.innerHTML = element.innerHTML.replace(pattern, placeholder.outerHTML);
-                                
-                                // Po kliknutí načíst komponentu přes AJAX
-                                element.querySelectorAll(".mezistrankahodnoceni-placeholder").forEach(function(ph) {
-                                    ph.addEventListener("click", function() {
-                                        var xhr = new XMLHttpRequest();
-                                        xhr.open("GET", "' . $this->context->link->getModuleLink($this->name, 'rating') . '", true);
-                                        xhr.onreadystatechange = function() {
-                                            if (xhr.readyState === 4 && xhr.status === 200) {
-                                                var parser = new DOMParser();
-                                                var doc = parser.parseFromString(xhr.responseText, "text/html");
-                                                var rating = doc.querySelector(".rating-container");
-                                                
-                                                if (rating) {
-                                                    ph.outerHTML = rating.outerHTML;
-                                                    
-                                                    // Načtení skriptů pro inicializaci
-                                                    var script = document.createElement("script");
-                                                    script.src = "' . $this->context->link->getMediaLink('/modules/' . $this->name . '/views/js/mezistranka_hodnoceni.js') . '";
-                                                    document.body.appendChild(script);
-                                                }
-                                            }
-                                        };
-                                        xhr.send();
-                                    });
-                                });
-                            }
+                // Získáme obsah aktuální stránky
+                $sql = "SELECT `content` FROM `" . _DB_PREFIX_ . "cms_lang` 
+                        WHERE `id_cms` = " . $cms_id . "
+                        AND `id_lang` = " . (int)$this->context->language->id;
+                
+                $content = Db::getInstance()->getValue($sql);
+                
+                // Pokud stránka obsahuje shortcode, vložíme JS pro nahrazení
+                if (strpos($content, '{mezistrankahodnoceni}') !== false) {
+                    // Načtení formuláře hodnocení
+                    $ratingHtml = $this->getRatingContent();
+                    // Escapování pro JavaScript
+                    $ratingHtml = str_replace(["'", "\r", "\n"], ["\\'", "", ""], $ratingHtml);
+                    
+                    return '<script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            // Najděte všechny výskyty textu {mezistrankahodnoceni} v obsahu
+                            var elements = document.querySelectorAll(".cms-content, .page-content, #cms, #content");
+                            
+                            elements.forEach(function(element) {
+                                if (element && element.innerHTML && element.innerHTML.includes("{mezistrankahodnoceni}")) {
+                                    // Nahradit shortcode obsahem komponenty
+                                    element.innerHTML = element.innerHTML.replace(/{mezistrankahodnoceni}/g, \'' . $ratingHtml . '\');
+                                    
+                                    // Načtení skriptů pro inicializaci
+                                    var script = document.createElement("script");
+                                    script.textContent = "initializeRatingModule();";
+                                    document.body.appendChild(script);
+                                }
+                            });
                         });
-                    });
-                </script>';
+                    </script>';
+                }
             }
         }
         
@@ -246,26 +278,7 @@ class Mezistranka_Hodnoceni extends Module
         
         // Pokud bylo posláno tlačítko pro aktualizaci všech stránek s shortcodem
         if (Tools::isSubmit('update_shortcodes')) {
-            // Načtení formuláře hodnocení
-            $this->context->smarty->assign([
-                'page_title' => $this->l('Ohodnoťte nás'),
-            ]);
-            
-            // Získání HTML obsahu formuláře hodnocení
-            $ratingHtml = $this->fetch('module:' . $this->name . '/views/templates/front/rating_content.tpl');
-            $ratingHtml = addslashes($ratingHtml); // Escapování pro SQL
-            
-            // Aktualizace všech CMS stránek, které obsahují shortcode
-            $sql = "UPDATE `" . _DB_PREFIX_ . "cms_lang` 
-                    SET `content` = REPLACE(`content`, '{mezistrankahodnoceni}', '" . $ratingHtml . "')
-                    WHERE `content` LIKE '%{mezistrankahodnoceni}%'";
-            
-            if (Db::getInstance()->execute($sql)) {
-                // Vyčištění cache
-                if (method_exists('Tools', 'clearAllCache')) {
-                    Tools::clearAllCache();
-                }
-                
+            if ($this->updateAllCmsWithShortcode()) {
                 $output .= $this->displayConfirmation($this->l('Všechny stránky se shortcodem byly aktualizovány.'));
             } else {
                 $output .= $this->displayError($this->l('Nastala chyba při aktualizaci stránek.'));
@@ -422,6 +435,7 @@ class Mezistranka_Hodnoceni extends Module
         
         return Db::getInstance()->executeS($sql);
     }
+
     /**
      * Exportuje statistiky hodnocení do CSV souboru
      */

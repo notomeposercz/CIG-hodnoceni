@@ -2,7 +2,7 @@
 <module>
     <name>mezistranka_hodnoceni</name>
     <displayName><![CDATA[Mezistranka hodnoceni]]></displayName>
-    <version><![CDATA[1.0.0]]></version>
+    <version><![CDATA[1.0.1]]></version>
     <description><![CDATA[Vlastni mezistranka pro filtrovani hodnoceni zakazniku.]]></description>
     <author><![CDATA[ChatGPT]]></author>
     <tab><![CDATA[front_office_features]]></tab>
