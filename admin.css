@@ -1,0 +1,203 @@
+/**
+ * Admin styly pro modul Mezistranka hodnoceni
+ */
+
+/* Základní styly pro statististické boxy */
+.statistics-summary {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    gap: 20px;
+}
+
+.statistics-summary .stat-box {
+    flex: 1;
+    min-width: 200px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    text-align: center;
+    background-color: #fff;
+    transition: all 0.3s ease;
+}
+
+.statistics-summary .stat-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.statistics-summary .stat-box h5 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #555;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.statistics-summary .stat-box .stat-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #25b9d7;
+    margin-bottom: 5px;
+}
+
+/* Stylování hvězdiček */
+.rating-stars {
+    color: #ffc107;
+    font-size: 18px;
+    margin: 10px 0;
+    letter-spacing: 2px;
+}
+
+.rating-stars .icon-star-o {
+    color: #e0e0e0;
+}
+
+/* Barevné rozlišení statistik */
+.positive-box {
+    border-left: 4px solid #4caf50;
+}
+
+.negative-box {
+    border-left: 4px solid #ff9800;
+}
+
+.average-box {
+    border-left: 4px solid #25b9d7;
+}
+
+.total-box {
+    border-left: 4px solid #6c757d;
+}
+
+/* Procenta */
+.stat-percent {
+    font-size: 15px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+/* Responzivní tabulka pro menší obrazovky */
+@media (max-width: 768px) {
+    .statistics-summary {
+        display: block;
+    }
+    
+    .statistics-summary .stat-box {
+        margin-bottom: 15px;
+        width: 100%;
+    }
+}
+
+/* Detailní přehled hodnocení */
+.stats-details {
+    margin-top: 20px;
+}
+
+/* Styling pro tabulku */
+.table-statistics {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.table-statistics th {
+    background-color: #f8f9fa;
+    border-top: none;
+    border-bottom: 2px solid #e9ecef;
+    color: #495057;
+    font-weight: 600;
+    padding: 12px 8px;
+}
+
+.table-statistics td {
+    vertical-align: middle !important;
+    padding: 12px 8px;
+    border-top: 1px solid #e9ecef;
+}
+
+.table-statistics tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Grafy a dashboard */
+.dashboard-stats {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.dashboard-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 10px;
+}
+
+/* Override pro panel hlavičku */
+.panel-heading {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 15px 20px;
+}
+
+/* Rating distribution section */
+.rating-distribution {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rating-row {
+    display: flex;
+    align-items: center;
+}
+
+.rating-stars-small {
+    width: 120px;
+    font-size: 14px;
+    color: #ffc107;
+}
+
+.rating-bar-container {
+    flex-grow: 1;
+    height: 12px;
+    background-color: #f0f0f0;
+    border-radius: 6px;
+    margin: 0 15px;
+    overflow: hidden;
+}
+
+.rating-bar {
+    height: 100%;
+    background-color: #25b9d7;
+    border-radius: 6px;
+}
+
+.rating-percent {
+    width: 60px;
+    text-align: right;
+    font-weight: 500;
+    color: #495057;
+}
+
+.rating-count {
+    width: 60px;
+    text-align: right;
+    color: #6c757d;
+}
+
+/* Filtrace */
+.filter-container {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}

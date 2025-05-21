@@ -1,0 +1,1 @@
+<a href="/modules/mezistranka_hodnoceni/reset_stats.php" class="btn btn-danger">{l s='Ano, smazat všechny statistiky' mod='mezistranka_hodnoceni'}</a>
